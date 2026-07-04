@@ -1,0 +1,90 @@
+- rol_usuario: Entidad que contiene toda la información referente a los roles disponibles para las credenciales (Tendría 3 registros en total: Admin, Rector y Estudiante)
+id (PK)
+nombre
+
+- credenciales: Entidad que contiene la información de inicio de sesión para el apartado del login, esencial para la lógica de las vistas dentro del código
+id (PK)
+username
+contraseña
+id_rol (FK)
+
+- localidad: Entidad similar a barrios, pero con la cardinalidad, esencial para la info de estudiantes e instituciones
+id (PK)
+nombre
+
+- barrios: Entidad que contiene la información correspondiente a todos los barrios de barranquilla y su zona metropolitana, esencial para la información de los estudiantes e instituciones
+id (PK)
+nombre
+id_localidad (FK)
+
+
+- instituciones: Entidad que contiene toda la información concerniente a los colegios, usa como llaves foráneas las referentes a ubicación (id_barrio e id_localidad), aparte usa la referente a las credenciales con el fin de poder relacionar a las credenciales de los rectores una institucion en especifico
+id (PK)
+nombre_institucion
+director
+dirección
+rector
+id_barrio (FK)
+id_credencial (FK)
+codigo_dane
+
+- tipos_documento: Entidad que contiene todos los tipos de documento que son validos en colombia, podria ser un check en lugar de una entidad aparte ya que solo son 5 y se representan con 2 letras (CC, TI, PP, CE y RC)
+id (PK)
+nombre
+
+- personas: Entidad que contiene toda la información personal de los estudiantes, muy diferente al perfil de estudiante, sin embargo se relación que este a traves de una llave foránea, aparte usa llaves foráneas para tipo de documento y ubicación en general, tanto barrio como localidad
+id (PK)
+nombres
+apellidos
+fecha_nacimiento
+email
+telefono
+id_tipo_documento (FK)
+documento
+direccion
+id_barrio (FK)
+id_perfil_estudiantil (FK)
+ 
+- contactos_personales: Entidad que contiene la información concerniente a los contactos adicionales que pueda tener un estudiante, de algún familiar, conocido, etc
+id (PK)
+nombres
+apellidos
+teléfono
+id_persona (FK)
+parentezco
+
+- perfil_estudiante: información que contiene el perfil estudiantil de un individuo, todo lo que concerniente a su vinculo con una institucion
+id (PK)
+estado (check: Activo, Inactivo o Egresado)
+grado
+fecha_ingreso
+fecha_egreso (Puede ser null)
+id_institucion (FK)
+id_credencial (FK)
+
+
+- campañas: Entidad que almacena la información correspondiente a las campañas realizadas ya sea por rectores (o sea, a nivel institucional) o admin que puede ser en nombre de la alcaldia, instituciones privadas (o sea, ya a una escala mayor, representan campañas que pueden ser para muchas instituciones)
+id (PK)
+tipo (check: Educativa, Deportiva o Cultural)
+descripción
+creador (Quien invita )
+publico (A quien va dirigida)
+fecha_inicio
+fecha_fin
+estado
+
+- campaña_por_institucion: Entidad que guarda la informacion que permite ver para que instituciones va dirigida una campaña especificamente, planteada mas que nada para el escenario en el que una campaña va dirigida para todas las instituciones, ya que esto generaria una relacion de muchos a muchos si esta pivote no existiese, debido a que una institucion tambien puede tener muchas campañas. (Sin embargo no estoy muy seguro de si esta sea la mejor practica para este caso)
+id (PK)
+id_campaña (FK)
+id_institucion (FK)
+
+- campaña_por_persona: Entidad que guarda la informacion que permite ver para que perfiles va dirigida una campaña especificamente, planteada mas que nada para el escenario en el que una campaña va dirigida para todos los perfiles, ya que esto generaria una relacion de muchos a muchos si esta pivote no existiese, debido a que una persona tambien puede tener muchas campañas en base a su perfil. (Sin embargo no estoy muy seguro de si esta sea la mejor practica para este caso) 
+id (PK)
+id_campaña (FK)
+id_credencial (FK)
+
+- inscripiciones_campaña: Entidad que contiene la informacion de todos las inscripciones realizadas para una campaña, si se fija bien contiene las mismas llaves foraneas que la entidad anterior, sin embargo se plantea bajo una logica completamente distinta, eso hace que esté bien? no se la verdad
+id (PK)
+id_campaña(FK)
+id_credencial(FK)
+fecha_inscripcion

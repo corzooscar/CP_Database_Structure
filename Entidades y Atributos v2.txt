@@ -1,0 +1,111 @@
+- rol_usuario:
+id (PK)
+nombre
+
+- credenciales:
+id (PK)
+username
+contraseña
+id_rol (FK)
+
+- localidades: 
+id (PK)
+nombre
+
+- barrios:
+id (PK)
+nombre
+id_localidad (FK)
+
+- instituciones:
+id (PK)
+nombre_institucion
+director
+dirección
+rector
+id_barrio (FK)
+id_credencial (FK)
+codigo_dane
+
+- tipos_documento:
+id (PK)
+abreviatura
+nombre
+
+- géneros:
+id (PK)
+nombre
+
+- personas: 
+id (PK)
+nombres
+apellidos
+id_genero (FK)
+fecha_nacimiento
+email
+telefono
+id_tipo_documento (FK)
+documento
+direccion
+id_barrio (FK)
+ 
+- contactos_personales:
+id (PK)
+nombres
+apellidos
+teléfono
+id_persona (FK)
+parentesco
+
+- grados
+id (PK)
+grado
+
+- perfil_estudiante: 
+id (PK)
+id_persona(FK)(FK de persona en vez de usar la FK de perfil en la entidad personas)
+id_institucion (FK)
+id_credencial (FK)
+estado (check: Activo, Inactivo o Egresado)
+id_grado (FK)
+fecha_ingreso
+fecha_egreso (Puede ser null)
+
+- campañas:
+id (PK)
+titulo
+tipo (check: Educativa, Deportiva o Cultural)
+descripción
+creador (Quien invita, no exactamente FK->CREDENCIALES, ej: alcaldía, empresa X)
+id_credencial_creador (FK, nullable)
+publico (A quien va dirigida, texto descriptivo unicamente)
+alcance (check: Institucional, Global)  -- nuevo: distingue rector vs superadmin
+fecha_inicio
+fecha_fin
+estado
+
+- campaña_criterio_institucion: Solo aplica si alcance = Institucional, o si un superadmin elige "un grupo selecto" de instituciones.
+id (PK)
+id_campaña (FK)
+id_institucion (FK)
+
+- campaña_criterio: Aquí es donde van los filtros dinámicos (edad, genero, grado, estado)
+id (PK)
+id_campaña (FK)
+genero (FK, nullable)
+edad_min (nullable)
+edad_max (nullable)
+grado (FK, nullable)
+estado_perfil (nullable, check: Activo/Egresado)
+
+- inscripiciones_campaña:
+id (PK)
+id_campaña(FK)
+id_credencial(FK)
+fecha_inscripcion
+
+- actualizaciones: Leyendo el documento de requerimientos, el MVP gira alrededor de la actualización de información. De hecho, uno de los objetivos es registrar la fecha de la última actualización de cada usuario y permitir medir la vigencia de los datos, entonces esta entidad me permite llevar un control de las actualizaciones y poder responder consultas como: ¿Quién actualizó durante una campaña? ¿Cuándo fue su última actualización? ¿Qué porcentaje de estudiantes respondió a una campaña? ¿Quiénes siguen pendientes?.
+id (PK)
+id_persona (FK)
+id_campaña (FK)
+fecha_actualizacion
