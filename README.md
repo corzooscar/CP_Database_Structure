@@ -277,3 +277,8 @@ Para referencia rápida del equipo, estas son las decisiones más importantes to
 - **Campañas dirigidas por criterios, no por listas de personas**: `campaña_criterio` guarda reglas (edad, género, grado, estado), no una fila por persona destinataria. La elegibilidad se calcula en el momento con una consulta, evitando datos duplicados o desincronizados frente a cambios en el estudiante.
 - **Separación de institución explícita vs. criterio dinámico de persona**: `campaña_criterio_institucion` sí guarda una lista explícita porque elegir instituciones es una selección finita y manual, mientras que los criterios de persona son reglas evaluables, no una selección directa.
 - **Trazabilidad de creador de campaña sin perder flexibilidad**: `campañas.creador` (texto libre) permite registrar entidades externas (alcaldía, empresas), mientras que `id_credencial_creador` (nullable) mantiene la auditoría interna cuando quien crea la campaña es un usuario del propio sistema.
+
+## Modelo Relacional hecho con Mermaid
+
+<img width="8192" height="7488" alt="Modelo_Relacional_Mermaid" src="https://github.com/user-attachments/assets/eb993187-10a1-4bf3-8dbe-089f3ef8518d" />
+
