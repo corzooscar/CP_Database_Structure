@@ -1,0 +1,223 @@
+-- =========================================================
+-- Sistema de Seguimiento de Estudiantes y Egresados
+-- Script de creación de tablas — PostgreSQL
+-- =========================================================
+
+-- ---------------------------------------------------------
+-- 1. CATÁLOGOS
+-- ---------------------------------------------------------
+
+CREATE TABLE user_roles (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    name VARCHAR(50) NOT NULL
+);
+
+CREATE TABLE document_types (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    abbreviation VARCHAR(5) NOT NULL,
+    name VARCHAR(50) NOT NULL
+);
+
+CREATE TABLE genders (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    name VARCHAR(50) NOT NULL
+);
+
+CREATE TABLE grades (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    grade VARCHAR(50) NOT NULL
+);
+
+CREATE TABLE statuses (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    status VARCHAR(50) NOT NULL
+);
+
+CREATE TABLE localities (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    name VARCHAR(100) NOT NULL
+);
+
+CREATE TABLE neighborhoods (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    locality_id INT NOT NULL,
+    FOREIGN KEY (locality_id) REFERENCES localities(id)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE
+);
+
+-- ---------------------------------------------------------
+-- 2. IDENTIDAD, PERSONAS E INSTITUCIONES
+-- ---------------------------------------------------------
+
+CREATE TABLE credentials (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    username VARCHAR(100) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    role_id INT NOT NULL,
+    FOREIGN KEY (role_id) REFERENCES user_roles(id)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE
+);
+
+CREATE TABLE people (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
+    gender_id INT,
+    birth_date DATE NOT NULL,
+    email VARCHAR(150),
+    phone VARCHAR(20),
+    document_type_id INT NOT NULL,
+    document_number VARCHAR(20) NOT NULL UNIQUE,
+    address VARCHAR(200),
+    neighborhood_id INT,
+    FOREIGN KEY (gender_id) REFERENCES genders(id)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE,
+    FOREIGN KEY (document_type_id) REFERENCES document_types(id)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE,
+    FOREIGN KEY (neighborhood_id) REFERENCES neighborhoods(id)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE
+);
+
+CREATE TABLE personal_contacts (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
+    phone VARCHAR(20),
+    person_id INT NOT NULL,
+    relationship VARCHAR(50) NOT NULL,
+    FOREIGN KEY (person_id) REFERENCES people(id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+);
+
+CREATE TABLE institutions (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    institution_name VARCHAR(200) NOT NULL,
+    director VARCHAR(150),
+    address VARCHAR(200),
+    principal VARCHAR(150),
+    neighborhood_id INT,
+    credential_id INT,
+    dane_code VARCHAR(20) NOT NULL UNIQUE,
+    FOREIGN KEY (neighborhood_id) REFERENCES neighborhoods(id)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE,
+    FOREIGN KEY (credential_id) REFERENCES credentials(id)
+        ON DELETE SET NULL
+        ON UPDATE CASCADE
+);
+
+CREATE TABLE student_profiles (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    person_id INT NOT NULL,
+    institution_id INT NOT NULL,
+    credential_id INT NOT NULL,
+    status_id INT NOT NULL,
+    grade_id INT,
+    start_date DATE NOT NULL,
+    end_date DATE,
+    FOREIGN KEY (person_id) REFERENCES people(id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+    FOREIGN KEY (institution_id) REFERENCES institutions(id)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE,
+    FOREIGN KEY (credential_id) REFERENCES credentials(id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+    FOREIGN KEY (status_id) REFERENCES statuses(id)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE,
+    FOREIGN KEY (grade_id) REFERENCES grades(id)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE
+);
+
+-- ---------------------------------------------------------
+-- 3. CAMPAÑAS DE ACTUALIZACIÓN
+-- ---------------------------------------------------------
+
+CREATE TABLE campaigns (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    title VARCHAR(200) NOT NULL,
+    type VARCHAR(20) NOT NULL
+        CHECK (type IN ('Educativa', 'Deportiva', 'Cultural')),
+    description TEXT,
+    creator_name VARCHAR(150),
+    credential_creator_id INT,
+    target_audience VARCHAR(200),
+    scope VARCHAR(20) NOT NULL
+        CHECK (scope IN ('Institucional', 'Global')),
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL,
+    status VARCHAR(20) NOT NULL,
+    FOREIGN KEY (credential_creator_id) REFERENCES credentials(id)
+        ON DELETE SET NULL
+        ON UPDATE CASCADE
+);
+
+CREATE TABLE campaign_institution_criteria (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    campaign_id INT NOT NULL,
+    institution_id INT NOT NULL,
+    FOREIGN KEY (campaign_id) REFERENCES campaigns(id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+    FOREIGN KEY (institution_id) REFERENCES institutions(id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+);
+
+CREATE TABLE campaign_criteria (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    campaign_id INT NOT NULL,
+    gender_id INT,
+    min_age SMALLINT,
+    max_age SMALLINT,
+    grade_id INT,
+    status_id INT,
+    FOREIGN KEY (campaign_id) REFERENCES campaigns(id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+    FOREIGN KEY (gender_id) REFERENCES genders(id)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE,
+    FOREIGN KEY (grade_id) REFERENCES grades(id)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE,
+    FOREIGN KEY (status_id) REFERENCES statuses(id)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE
+);
+
+CREATE TABLE campaign_enrollments (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    campaign_id INT NOT NULL,
+    credential_id INT NOT NULL,
+    enrolled_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (campaign_id) REFERENCES campaigns(id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+    FOREIGN KEY (credential_id) REFERENCES credentials(id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+);
+
+CREATE TABLE updates (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    person_id INT NOT NULL,
+    campaign_id INT NOT NULL,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (person_id) REFERENCES people(id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+    FOREIGN KEY (campaign_id) REFERENCES campaigns(id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+);
